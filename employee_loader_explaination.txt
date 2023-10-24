@@ -1,0 +1,27 @@
+SQL Statements:
+
+READ_HRI_SQL: This SQL query reads "Active" employees from the FUSION_DIS_PL.ps_ubs_vzznbi_ee table and fetches multiple columns like emplid, ubs_first_name, etc.
+
+    SELECT ... FROM FUSION_DIS_PL.ps_ubs_vzznbi_ee WHERE ubs_status_descr = 'Active';
+
+UPLOAD_SQL: This SQL query inserts data into the ubsemployee_loader table. It uses placeholders (?) for parameterized queries.
+
+    INSERT INTO ubsemployee_loader (...) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);
+
+TERMINATE_SQL: This SQL query updates the status column to 'Terminated' for employees in the ubsemployee table who are not present in the ubsemployee_loader table and have a status other than 'Terminated'.
+
+    UPDATE ubsemployee SET status = 'Terminated' WHERE gpn_code NOT IN (SELECT gpn_code FROM ubsemployee_loader) AND status <> 'Terminated';
+
+MERGE_SQL: This SQL performs a merge (upsert) operation. It updates existing records if the gpn_code matches and inserts a new record if it does not.
+
+    MERGE INTO ubsemployee ue USING (...) ON (ue.gpn_code = uel.gpn_code) WHEN MATCHED THEN UPDATE SET ... WHEN NOT MATCHED THEN INSERT ...;
+
+UPLOAD_TEST_USERS: Inserts test users into the ubsemployee_loader table from the ncap_users table.
+
+    INSERT INTO ubsemployee_loader (...) SELECT ... FROM ncap_users WHERE ...;
+
+Logic:
+
+    The employeeLoader() method prepares the UPLOAD_SQL statement and then executes the READ_HRI_SQL to fetch data.
+    It then iterates through the result set (hriRs) and sets the parameters in the UPLOAD_SQL using PreparedStatement.
+    It batches every 500 records to execute the SQL insert operation in the ubsemployee_loader table.
