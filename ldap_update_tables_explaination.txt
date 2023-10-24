@@ -1,0 +1,20 @@
+The logic for the LDAP_UPDATE_TABLES procedure can be summarized in the following way.
+
+There are 4 stages of the procedure:
+
+1. Update or Insert into NCAP_USERS:
+    It uses a MERGE statement to synchronize NCAP_USERS with ARP_USERS.
+    If a match is found between NCAP_USERS and ARP_USERS based on gpn_code, it updates the user_name in NCAP_USERS.
+    If no match is found and the gpn_code is not already in NCAP_USERS, it inserts a new row.
+
+2. Update or Insert into NCAP_USER_ROLES:
+    It iterates through each row from ARP_USER_ROLES.
+    For each row, it checks whether a gpn + role pair exist in NCAP_USER_ROLES by invoking functions checkIfRoleExists function.
+    For each row, it checks whether a gpn exist in NCAP_USERS checkIfGroupExists function.
+    Based on the checks, it either inserts a new row or updates an existing row in NCAP_USER_ROLES.
+
+3. Delete from NCAP_USER_ROLES:
+    Deletes all rows from NCAP_USER_ROLES that do not have corresponding entries in ARP_USER_ROLES.
+
+4. Delete from NCAP_USERS:
+    Deletes all rows from NCAP_USERS that do not have corresponding entries in ARP_USERS.
