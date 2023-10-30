@@ -1,0 +1,44 @@
+In Oracle, you can query various data dictionary views to get information about the constraints applied to a table. Below are some queries that can be useful:
+
+### To find all constraints for a table:
+```sql
+SELECT CONSTRAINT_NAME, CONSTRAINT_TYPE, STATUS, SEARCH_CONDITION
+FROM USER_CONSTRAINTS 
+WHERE TABLE_NAME = 'YOUR_TABLE_NAME';
+```
+Replace `'YOUR_TABLE_NAME'` with the name of your table. The `CONSTRAINT_TYPE` will indicate the type of constraint (e.g., 'P' for Primary Key, 'U' for Unique, 'C' for Check, 'R' for Foreign Key).
+
+### To find only `NOT NULL` constraints:
+```sql
+SELECT COLUMN_NAME
+FROM USER_TAB_COLUMNS
+WHERE TABLE_NAME = 'YOUR_TABLE_NAME' AND NULLABLE = 'N';
+```
+
+### To find foreign key constraints:
+```sql
+SELECT a.CONSTRAINT_NAME, a.COLUMN_NAME, a.TABLE_NAME, b.TABLE_NAME "REFERENCES_TABLE", b.COLUMN_NAME "REFERENCES_COLUMN"
+FROM USER_CONS_COLUMNS a, USER_CONS_COLUMNS b, USER_CONSTRAINTS c
+WHERE a.TABLE_NAME = 'YOUR_TABLE_NAME' 
+AND c.CONSTRAINT_NAME = a.CONSTRAINT_NAME
+AND c.R_CONSTRAINT_NAME = b.CONSTRAINT_NAME
+AND c.CONSTRAINT_TYPE = 'R';
+```
+
+### To find check constraints:
+```sql
+SELECT CONSTRAINT_NAME, SEARCH_CONDITION
+FROM USER_CONSTRAINTS
+WHERE TABLE_NAME = 'YOUR_TABLE_NAME' AND CONSTRAINT_TYPE = 'C';
+```
+
+### To find unique and primary key constraints:
+```sql
+SELECT a.CONSTRAINT_NAME, a.COLUMN_NAME
+FROM USER_CONS_COLUMNS a, USER_CONSTRAINTS b
+WHERE a.TABLE_NAME = 'YOUR_TABLE_NAME'
+AND a.CONSTRAINT_NAME = b.CONSTRAINT_NAME
+AND (b.CONSTRAINT_TYPE = 'P' OR b.CONSTRAINT_TYPE = 'U');
+```
+
+Remember to replace `'YOUR_TABLE_NAME'` with the name of the table for which you're trying to find the constraints. Also, these queries assume that you're executing them with the rights to see the table's constraints and that the table is in your own schema. If the table is in another schema, you might want to query the `ALL_CONSTRAINTS`, `ALL_CONS_COLUMNS`, and `ALL_TAB_COLUMNS` views, specifying both the `TABLE_NAME` and `OWNER`.
